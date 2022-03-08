@@ -9,44 +9,52 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-//var secretKey = []byte("mykey") //configten al.
+var secretKey = []byte("mykey") //configten al.
 
-// GetToken method for create a new access token.
-// @Description Create a new access token.
-// @Summary create a new access token
-// @Tags Token
-// @Accept json
-// @Produce json
-// @Param token body models.UserToken true "Create Token"
-// @Success 200 {array} models.Token
-// @Router /login [post]
-func Login(ctx *fiber.Ctx) error {
+func Token() (map[string]string, error) {
+	// Create the Claims
+	claims := jwt.MapClaims{
+		"name":  "busra",
+		"admin": true,
+		"exp":   time.Now().Add(time.Minute * 15).Unix(),
+	}
+	// Create access token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	var user models.User
-	err := ctx.BodyParser(&user)
+	tokenString, err := token.SignedString(secretKey)
+	if err != nil {
+		return nil, err
+	}
+	// Create refresh token
+	rclaims := jwt.MapClaims{
+		"uuid": 1,
+		"exp":  time.Now().Add(time.Hour * 1).Unix(),
+	}
+	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, rclaims)
+
+	rtokenString, err := refreshToken.SignedString(secretKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]string{
+		"access_token":  tokenString,
+		"refresh_token": rtokenString,
+	}, nil
+}
+
+func RefreshToken(ctx *fiber.Ctx) error {
+	var rtoken models.Token
+
+	err := ctx.BodyParser(&rtoken)
 	if err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "cannot parse json",
 		})
 	}
-	if user.Username != "busra" || user.Password != "123" {
-		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Bad Credentials",
-		})
-	}
-	// Create the Claims
-	claims := jwt.MapClaims{
-		"name":  "busra",
-		"admin": true,
-		"exp":   time.Now().Add(time.Hour * 72).Unix(),
-	}
-	// Create token
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	// Generate encoded token and send it as response.
-	tokenString, err := token.SignedString([]byte("secret"))
+	token, err := Token()
 	if err != nil {
-		return ctx.SendStatus(fiber.StatusInternalServerError)
+		return nil
 	}
-	return ctx.JSON(fiber.Map{"token": tokenString})
+	return ctx.JSON(token)
 }

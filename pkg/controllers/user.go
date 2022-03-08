@@ -2,10 +2,15 @@ package controllers
 
 import (
 	_ "github.com/busranurguner/foodchain/docs"
+	"github.com/busranurguner/foodchain/pkg/db"
 	"github.com/busranurguner/foodchain/pkg/models"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
+
+var userCollection *mongo.Collection = db.GetCollection(db.DB, "User")
 
 // GetUser method.
 // @Description Get user.
@@ -25,20 +30,19 @@ func GetUser(ctx *fiber.Ctx) error {
 	if !role {
 		return ctx.SendStatus(401)
 	}
-
-	user := []models.User{
-		{
-			ID:       "1",
-			Username: "busra",
-			Role:     "admin",
-			Password: "123",
-		},
-		{
-			ID:       "2",
-			Username: "ayse",
-			Role:     "member",
-			Password: "456",
-		},
+	var users []models.User
+	cursor, err := userCollection.Find(ctx.Context(), bson.M{}) // bson.M gelen verilerin sırası önemsiz ise kullanılır.
+	if err != nil {
+		return nil
 	}
-	return ctx.JSON(user)
+
+	for cursor.Next(ctx.Context()) {
+		var user models.User
+		if err = cursor.Decode(&user); err != nil {
+			return ctx.SendStatus(500)
+		}
+		users = append(users, user)
+	}
+	return ctx.JSON(users)
+
 }
