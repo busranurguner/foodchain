@@ -6,6 +6,11 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
+func SignUp(ctx *fiber.Ctx) error {
+
+	return nil
+}
+
 // GetToken method for create a new access token.
 // @Description Create a new access token.
 // @Summary create a new access token
@@ -32,9 +37,48 @@ func Login(ctx *fiber.Ctx) error {
 			"error": "Bad Credentials",
 		})
 	}
-	token, err := Token()
+	atoken, rtoken, err := Token(foundUser.Username, foundUser.Password, foundUser.Role)
 	if err != nil {
 		return err
 	}
-	return ctx.JSON(token)
+
+	//her login oldugunda yeni bir refresh token olmalı mı?
+	update := bson.M{"refresh": rtoken}
+	userCollection.UpdateOne(ctx.Context(), bson.M{"_id": foundUser.ID}, bson.M{"$set": update})
+
+	return ctx.JSON(fiber.Map{
+		"access":  atoken,
+		"refresh": rtoken,
+	})
+}
+
+func RefreshToken(ctx *fiber.Ctx) error {
+
+	var token models.Token
+	var fuser models.User
+
+	err := ctx.BodyParser(&token)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "cannot parse json",
+		})
+	}
+	err = userCollection.FindOne(ctx.Context(), bson.M{"refresh": token.RefreshToken}).Decode(&fuser)
+	if err != nil {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Not Found",
+		})
+	}
+	atoken, rtoken, err := Token(fuser.Username, fuser.Password, fuser.Role)
+	if err != nil {
+		return err
+	}
+
+	update := bson.M{"refresh": rtoken}
+	userCollection.UpdateOne(ctx.Context(), bson.M{"_id": fuser.ID}, bson.M{"$set": update})
+
+	return ctx.JSON(fiber.Map{
+		"access":  atoken,
+		"refresh": rtoken,
+	})
 }
