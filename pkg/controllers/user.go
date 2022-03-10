@@ -25,11 +25,12 @@ func GetUser(ctx *fiber.Ctx) error {
 
 	u := ctx.Locals("user").(*jwt.Token)
 	claims := u.Claims.(jwt.MapClaims)
-	role := claims["admin"].(bool)
+	role := claims["role"].(string)
 
-	if !role {
+	if role != "admin" {
 		return ctx.SendStatus(401)
 	}
+
 	var users []models.User
 	cursor, err := userCollection.Find(ctx.Context(), bson.M{}) // bson.M gelen verilerin sırası önemsiz ise kullanılır.
 	if err != nil {
