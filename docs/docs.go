@@ -61,16 +61,85 @@ const docTemplate_swagger = `{
                 }
             }
         },
+        "/refresh": {
+            "post": {
+                "description": "Create a new token.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Token"
+                ],
+                "summary": "create a new token",
+                "parameters": [
+                    {
+                        "description": "Create Token",
+                        "name": "token",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Refresh"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Token"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/signup": {
+            "post": {
+                "description": "Create a new user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "create a new user",
+                "parameters": [
+                    {
+                        "description": "Signup User",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.User"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/user": {
             "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
-                    },
-                    {
-                        "OAuth2Application": [
-                            "admin"
-                        ]
                     }
                 ],
                 "description": "Get user.",
@@ -99,6 +168,14 @@ const docTemplate_swagger = `{
         }
     },
     "definitions": {
+        "models.Refresh": {
+            "type": "object",
+            "properties": {
+                "refresh": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Token": {
             "type": "object",
             "properties": {
@@ -120,6 +197,9 @@ const docTemplate_swagger = `{
                     "type": "string"
                 },
                 "password": {
+                    "type": "string"
+                },
+                "refresh": {
                     "type": "string"
                 },
                 "role": {

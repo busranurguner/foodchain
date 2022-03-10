@@ -1,5 +1,10 @@
 basePath: /v1
 definitions:
+  models.Refresh:
+    properties:
+      refresh:
+        type: string
+    type: object
   models.Token:
     properties:
       refreshtoken:
@@ -14,6 +19,8 @@ definitions:
       id:
         type: string
       password:
+        type: string
+      refresh:
         type: string
       role:
         type: string
@@ -64,6 +71,54 @@ paths:
       summary: create a new access token
       tags:
       - Token
+  /refresh:
+    post:
+      consumes:
+      - application/json
+      description: Create a new token.
+      parameters:
+      - description: Create Token
+        in: body
+        name: token
+        required: true
+        schema:
+          $ref: '#/definitions/models.Refresh'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Token'
+            type: array
+      summary: create a new token
+      tags:
+      - Token
+  /signup:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user.
+      parameters:
+      - description: Signup User
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+      summary: create a new user
+      tags:
+      - User
   /user:
     get:
       consumes:
@@ -80,8 +135,6 @@ paths:
             type: array
       security:
       - ApiKeyAuth: []
-      - OAuth2Application:
-        - admin
       summary: Get user
       tags:
       - User

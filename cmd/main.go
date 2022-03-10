@@ -33,6 +33,8 @@ func main() {
 	//Grouping
 	v1 := app.Group("/v1")
 
+	v1.Post("/signup", controllers.SignUp)
+
 	v1.Post("/login", controllers.Login)
 
 	v1.Post("/refresh", controllers.RefreshToken)

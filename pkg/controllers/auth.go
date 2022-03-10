@@ -4,11 +4,34 @@ import (
 	"github.com/busranurguner/foodchain/pkg/models"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// Signup method for create a user.
+// @Description Create a new user.
+// @Summary create a new user
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param user body models.User true "Signup User"
+// @Success 200 {array} models.User
+// @Router /signup [post]
 func SignUp(ctx *fiber.Ctx) error {
 
-	return nil
+	var user models.User
+	err := ctx.BodyParser(&user)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Cannot Parse JSON",
+		})
+	}
+	user.ID = primitive.NewObjectID()
+	newUser, err := userCollection.InsertOne(ctx.Context(), user)
+	if err != nil {
+		return ctx.SendStatus(500)
+	}
+	return ctx.JSON(newUser)
+
 }
 
 // GetToken method for create a new access token.
@@ -41,8 +64,6 @@ func Login(ctx *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-
-	//her login oldugunda yeni bir refresh token olmalı mı?
 	update := bson.M{"refresh": rtoken}
 	userCollection.UpdateOne(ctx.Context(), bson.M{"_id": foundUser.ID}, bson.M{"$set": update})
 
@@ -52,6 +73,15 @@ func Login(ctx *fiber.Ctx) error {
 	})
 }
 
+// RefreshToken method for create a access-refresh token.
+// @Description Create a new token.
+// @Summary create a new token
+// @Tags Token
+// @Accept json
+// @Produce json
+// @Param token body models.Refresh true "Create Token"
+// @Success 200 {array} models.Token
+// @Router /refresh [post]
 func RefreshToken(ctx *fiber.Ctx) error {
 
 	var token models.Token

@@ -5,3 +5,6 @@ type Token struct {
 	RefreshToken string `json:"refreshtoken"`
 	Status       string `json:"status"`
 }
+type Refresh struct {
+	RefreshToken string `json:"refresh"`
+}
