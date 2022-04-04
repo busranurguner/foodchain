@@ -54,7 +54,10 @@ func (a authRepository) Login(req LoginRequest) (string, string, error) {
 	}
 	if foundUser.Refresh == "" {
 		update := bson.M{"refresh": rtoken}
-		a.DB.UpdateOne(context.TODO(), bson.M{"_id": foundUser.ID}, bson.M{"$set": update})
+		_, err := a.DB.UpdateOne(context.TODO(), bson.M{"_id": foundUser.ID}, bson.M{"$set": update})
+		if err != nil {
+			return "", "", err
+		}
 	}
 	return atoken, rtoken, nil
 }
@@ -71,7 +74,10 @@ func (a authRepository) Refresh(req RefreshRequest) (string, string, error) {
 		return "", "", nil
 	}
 	update := bson.M{"refresh": rtoken}
-	a.DB.UpdateOne(context.TODO(), bson.M{"_id": foundUser.ID}, bson.M{"$set": update})
+	_, err = a.DB.UpdateOne(context.TODO(), bson.M{"_id": foundUser.ID}, bson.M{"$set": update})
+	if err != nil {
+		return "", "", nil
+	}
 
 	return atoken, rtoken, nil
 }

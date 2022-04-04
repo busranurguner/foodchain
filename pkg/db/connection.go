@@ -8,8 +8,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var dbcon *mongo.Database
-
 func ConfigDB() *mongo.Database {
 	ctx := context.Background()
 	client, err := mongo.Connect(
