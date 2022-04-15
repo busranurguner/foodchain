@@ -10,12 +10,10 @@ type SignUpRequest struct {
 	Password string             `json:"password" `
 	Refresh  string             `json:"refresh"`
 }
-
 type LoginRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
-
 type RefreshRequest struct {
 	Refresh string `json:"refresh"`
 }

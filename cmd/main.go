@@ -5,9 +5,12 @@ import (
 	_ "github.com/busranurguner/foodchain/docs"
 	"github.com/busranurguner/foodchain/pkg/auth"
 	"github.com/busranurguner/foodchain/pkg/db"
+	"github.com/busranurguner/foodchain/pkg/logger"
 	"github.com/busranurguner/foodchain/pkg/middlewares"
 	"github.com/busranurguner/foodchain/pkg/user"
 	"github.com/gofiber/fiber/v2"
+
+	log "github.com/gofiber/fiber/v2/middleware/logger"
 	jwtware "github.com/gofiber/jwt/v3"
 )
 
@@ -33,6 +36,12 @@ func main() {
 	//Swagger
 	app.Get("/swagger/*", swagger.HandlerDefault)
 
+	//Logging
+	zapLogger, _ := logger.NewZapLogger()
+	logger.L = zapLogger
+
+	app.Use(log.New())
+
 	//Grouping
 	v1 := app.Group("/v1")
 
@@ -49,6 +58,7 @@ func main() {
 		SigningKey: []byte("mykey"),
 		AuthScheme: "Bearer",
 	}))
+
 	userRepo := user.NewRepository(database)
 	userService := user.NewService(userRepo)
 	userHandler := user.NewHandler(userService)
@@ -56,4 +66,6 @@ func main() {
 	v1.Get("/user", middlewares.BasicAuthHandler(), userHandler.GetAll)
 
 	app.Listen(":3000")
+
+	logger.L.Fatal(app.Listen(":3000"))
 }

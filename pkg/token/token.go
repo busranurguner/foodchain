@@ -8,8 +8,9 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-var secretKey = []byte("mykey") //configten al.
+var secretKey = []byte("mykey")
 
+//todo : düzenle ..
 func Token(username string, password string, role string) (atoken string, rtoken string, err error) {
 	// Create the Claims
 	claims := jwt.MapClaims{

@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 
+	"github.com/busranurguner/foodchain/pkg/logger"
 	"github.com/busranurguner/foodchain/pkg/models"
 	"github.com/busranurguner/foodchain/pkg/token"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -35,6 +36,7 @@ func (a authRepository) SignUp(user *models.User) error {
 	user.ID = primitive.NewObjectID()
 	_, err := a.DB.InsertOne(context.TODO(), user)
 	if err != nil {
+		logger.L.Error("There was an error sign up the user")
 		return err
 	}
 	return nil
@@ -46,19 +48,20 @@ func (a authRepository) Login(req LoginRequest) (string, string, error) {
 	var foundUser models.User
 	err := a.DB.FindOne(context.TODO(), bson.M{"username": req.Username, "password": req.Password}).Decode(&foundUser)
 	if err != nil {
-		return "", "", nil
+		logger.L.Error("User not found")
+		return "", "", err
 	}
 	atoken, rtoken, err := token.Token(foundUser.Username, foundUser.Password, foundUser.Role)
 	if err != nil {
-		return "", "", nil
+		return "", "", err
 	}
-	if foundUser.Refresh == "" {
-		update := bson.M{"refresh": rtoken}
-		_, err := a.DB.UpdateOne(context.TODO(), bson.M{"_id": foundUser.ID}, bson.M{"$set": update})
-		if err != nil {
-			return "", "", err
-		}
+	//refresh token add
+	update := bson.M{"refresh": rtoken}
+	_, err = a.DB.UpdateOne(context.TODO(), bson.M{"_id": foundUser.ID}, bson.M{"$set": update})
+	if err != nil {
+		return "", "", err
 	}
+
 	return atoken, rtoken, nil
 }
 
