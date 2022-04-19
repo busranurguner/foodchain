@@ -7,3 +7,11 @@ type GetAllRequest struct {
 	Password string `json:"password" `
 	Refresh  string `json:"refresh"`
 }
+type UpdateRequest struct {
+	ID       string `bson:"_id"`
+	Password string `json:"password"`
+}
+
+type DeleteRequest struct {
+	ID string `bson:"_id"`
+}

@@ -64,8 +64,9 @@ func main() {
 	userHandler := user.NewHandler(userService)
 
 	v1.Get("/user", middlewares.BasicAuthHandler(), userHandler.GetAll)
-
-	app.Listen(":3000")
+	v1.Get("/user/:id", middlewares.BasicAuthHandler(), userHandler.GetByID)
+	v1.Put("/user/:id", middlewares.BasicAuthHandler(), userHandler.Update)
+	v1.Delete("/user/:id", middlewares.BasicAuthHandler(), userHandler.Delete)
 
 	logger.L.Fatal(app.Listen(":3000"))
 }
