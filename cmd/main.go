@@ -65,6 +65,7 @@ func main() {
 
 	v1.Get("/user", middlewares.BasicAuthHandler(), userHandler.GetAll)
 	v1.Get("/user/:id", middlewares.BasicAuthHandler(), userHandler.GetByID)
+	v1.Post("/user", middlewares.BasicAuthHandler(), userHandler.Create)
 	v1.Put("/user/:id", middlewares.BasicAuthHandler(), userHandler.Update)
 	v1.Delete("/user/:id", middlewares.BasicAuthHandler(), userHandler.Delete)
 

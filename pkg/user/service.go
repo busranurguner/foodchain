@@ -7,6 +7,7 @@ import (
 type UserService interface {
 	GetAll(req GetAllRequest) ([]models.User, error)
 	GetByID(id string) (*models.User, error)
+	Create(req CreateRequest) error
 	Update(req UpdateRequest) error
 	Delete(req DeleteRequest) error
 }
@@ -30,6 +31,16 @@ func (u userService) GetAll(req GetAllRequest) ([]models.User, error) {
 }
 func (u userService) GetByID(id string) (*models.User, error) {
 	return u.repo.GetByID(id)
+}
+func (u userService) Create(req CreateRequest) error {
+	users := &models.User{
+		Username: req.Username,
+		Email:    req.Email,
+		Password: req.Password,
+		Role:     req.Role,
+		Refresh:  req.Refresh,
+	}
+	return u.repo.Create(users)
 }
 
 func (u userService) Update(req UpdateRequest) error {

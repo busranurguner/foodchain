@@ -16,6 +16,7 @@ const (
 type UserRepository interface {
 	GetAll(req GetAllRequest) ([]models.User, error)
 	GetByID(id string) (*models.User, error)
+	Create(user *models.User) error
 	Update(user *models.User) error
 	Delete(id string) error
 }
@@ -48,9 +49,7 @@ func (u userRepository) GetAll(req GetAllRequest) ([]models.User, error) {
 }
 
 func (u userRepository) GetByID(id string) (*models.User, error) {
-
 	var user models.User
-
 	bid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
@@ -61,6 +60,15 @@ func (u userRepository) GetByID(id string) (*models.User, error) {
 	}
 
 	return &user, nil
+}
+
+func (u userRepository) Create(user *models.User) error {
+	user.ID = primitive.NewObjectID()
+	_, err := u.DB.InsertOne(context.TODO(), user)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (u userRepository) Update(user *models.User) error {
@@ -82,5 +90,4 @@ func (u userRepository) Delete(id string) error {
 		return err
 	}
 	return nil
-
 }
