@@ -1,14 +1,24 @@
 package user
 
 import (
+	"errors"
+	"fmt"
+	"time"
+
+	memcache "github.com/busranurguner/foodchain/pkg/cache"
 	"github.com/busranurguner/foodchain/pkg/models"
 	validation "github.com/busranurguner/foodchain/pkg/validation"
 	"github.com/gofiber/fiber/v2"
 )
 
+const (
+	userKey = "userKey"
+)
+
 type UserHandler interface {
 	GetAll(c *fiber.Ctx) error
 	GetByID(c *fiber.Ctx) error
+	Create(c *fiber.Ctx) error
 	Update(c *fiber.Ctx) error
 	Delete(c *fiber.Ctx) error
 }
@@ -45,11 +55,41 @@ func (u userHandler) GetByID(c *fiber.Ctx) error {
 	if id == "" {
 		return c.Status(400).JSON(models.Response{Error: "id path parameter can not be empty"})
 	}
-	user, err := u.service.GetByID(id)
+
+	userCache := memcache.Get(fmt.Sprintf(userKey, id), time.Minute*5, func() interface{} {
+		user, err := u.service.GetByID(id)
+		if err != nil {
+			return err
+		}
+		return user
+	})
+	user, ok := userCache.(*models.User)
+	if !ok {
+		err := errors.New("user did not found")
+		return err
+	}
+	/*user, err := u.service.GetByID(id)
+	if err != nil {
+		return c.Status(400).JSON(models.Response{Error: err.Error()})
+	}*/
+	return c.Status(200).JSON(models.Response{Data: user})
+}
+func (u userHandler) Create(c *fiber.Ctx) error {
+
+	request := CreateRequest{}
+	err := c.BodyParser(&request)
 	if err != nil {
 		return c.Status(400).JSON(models.Response{Error: err.Error()})
 	}
-	return c.Status(200).JSON(models.Response{Data: user})
+	err = validation.Validator.Struct(request)
+	if err != nil {
+		return c.Status(400).JSON(models.Response{Error: err.Error()})
+	}
+	err = u.service.Create(request)
+	if err != nil {
+		return c.Status(400).JSON(models.Response{Error: err.Error()})
+	}
+	return c.SendStatus(200)
 }
 
 //Update password
