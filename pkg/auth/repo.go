@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 
+	hash "github.com/busranurguner/foodchain/pkg/hash"
 	"github.com/busranurguner/foodchain/pkg/logger"
 	"github.com/busranurguner/foodchain/pkg/models"
 	"github.com/busranurguner/foodchain/pkg/token"
@@ -34,6 +35,8 @@ func NewRepository(DB *mongo.Database) AuthRepository {
 //SignUp implements AuthRepository
 func (a authRepository) SignUp(user *models.User) error {
 	user.ID = primitive.NewObjectID()
+	user.Password = hash.HashPassword(user.Password)
+
 	_, err := a.DB.InsertOne(context.TODO(), user)
 	if err != nil {
 		logger.L.Error("There was an error sign up the user")
@@ -46,11 +49,18 @@ func (a authRepository) SignUp(user *models.User) error {
 //Login implements AuthRepository
 func (a authRepository) Login(req LoginRequest) (string, string, error) {
 	var foundUser models.User
-	err := a.DB.FindOne(context.TODO(), bson.M{"username": req.Username, "password": req.Password}).Decode(&foundUser)
+
+	err := a.DB.FindOne(context.TODO(), bson.M{"username": req.Username}).Decode(&foundUser)
 	if err != nil {
 		logger.L.Error("User not found")
 		return "", "", err
 	}
+
+	passwordIsValid := hash.VerifyPassword(req.Password, foundUser.Password)
+	if !passwordIsValid {
+		return "", "", nil
+	}
+
 	atoken, rtoken, err := token.Token(foundUser.Username, foundUser.Password, foundUser.Role)
 	if err != nil {
 		return "", "", err
