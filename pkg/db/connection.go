@@ -12,10 +12,10 @@ func ConfigDB() *mongo.Database {
 	ctx := context.Background()
 	client, err := mongo.Connect(
 		ctx,
-		options.Client().ApplyURI("mongodb://localhost:27017"),
+		options.Client().ApplyURI("URI"),
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return client.Database("Example")
+	return client.Database("DATABASE_NAME")
 }
